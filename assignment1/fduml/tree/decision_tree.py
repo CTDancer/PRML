@@ -1,7 +1,7 @@
 import numpy as np
 from collections import Counter
 
-from criterion import get_criterion_function
+from .criterion import get_criterion_function
 
 class node:
     def __init__(self,

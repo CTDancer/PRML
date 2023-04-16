@@ -4,7 +4,7 @@ Softmax Classifier
 from builtins import range
 import numpy as np
 
-from linear import LinearModel
+from .linear import LinearModel
 
 class SoftmaxClassifier(LinearModel):
     """
@@ -117,6 +117,9 @@ class SoftmaxClassifier(LinearModel):
                 print("iteration %d / %d: loss %f" % (it, self.num_iters, loss))
 
         self.W = best_W
+
+        # print(self.W)
+        # print(self.loss)
         return self
 
 
@@ -143,7 +146,7 @@ class SoftmaxClassifier(LinearModel):
         # Implement this method. Store the predicted labels in y_pred.            #
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        # print(X.shape)
         y_pred = np.argmax(np.dot(X,self.W), axis=1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****

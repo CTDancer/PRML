@@ -97,7 +97,10 @@ def __info_gain_ratio(y, l_y, r_y):
     n = np.sum(np.array(list(all_labels.values())))
     n1 = np.sum(np.array(list(left_labels.values())))
     n2 = np.sum(np.array(list(right_labels.values())))
-    split_ratio = - n1/n*np.log2(n1/n) - n2/n*np.log2(n2/n)
+    if n1 == 0 or n2 == 0:
+        return 0
+    else:
+        split_ratio = - n1/n*np.log2(n1/n) - n2/n*np.log2(n2/n)
     info_gain = info_gain / split_ratio
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -124,8 +127,18 @@ def __gini_index(y, l_y, r_y):
     left_labels = np.array(list(left_labels.values()))
     right_labels = np.array(list(right_labels.values()))
     before = 1 - np.sum(np.square(all_labels)) / np.sum(all_labels)**2
-    after = 1 - np.sum(np.square(left_labels)) / np.sum(left_labels)**2 - np.sum(np.square(right_labels)) / np.sum(right_labels)**2
-
+    
+    if len(left_labels) == 0:
+        after_left = 0
+    else:
+        after_left = 1 - np.sum(np.square(left_labels)) / np.sum(left_labels)**2
+    
+    if len(right_labels) == 0:
+        after_right = 0
+    else:
+        after_right = 1 - np.sum(np.square(right_labels)) / np.sum(right_labels)**2
+    
+    after = after_left + after_right
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return before - after

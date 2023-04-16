@@ -2,7 +2,7 @@
 Linear Regression
 """
 import numpy as np
-from linear import LinearModel
+from .linear import LinearModel
 
 class LinearRegression(LinearModel):
     """
