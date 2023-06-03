@@ -8,33 +8,9 @@ import sys
 sys.path.append(os.getcwd())
 
 import numpy as np
-from base import Module
+from .base import Module
 
 class Linear(Module):
-    """Applies a linear transformation to the incoming data: :math:`Y = XW^T + b`
-
-    Args:
-        in_features: size of each input sample
-        out_features: size of each output sample
-        bias: If set to ``False``, the layer will not learn an additive bias.
-            Default: ``True``
-
-    Shape:
-        - input: :math:`(*, H_{in})` where :math:`*` means any number of
-          dimensions including none and :math:`H_{in} = \text{in\_features}`.
-        - output: :math:`(*, H_{out})` where all but the last dimension
-          are the same shape as the input and :math:`H_{out} = \text{out\_features}`.
-
-    Parameters:
-        W: the learnable weights of the module of shape
-            :math:`(\text{out\_features}, \text{in\_features})`. The values are
-            initialized from :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})`, where
-            :math:`k = \frac{1}{\text{in\_features}}`
-        b: the learnable bias of the module of shape :math:`(\text{out\_features})`.
-                If :attr:`bias` is ``True``, the values are initialized from
-                :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})` where
-                :math:`k = \frac{1}{\text{in\_features}}`
-    """
     def __init__(self, in_features, out_features, bias = True):
 
         # input and output
@@ -61,21 +37,21 @@ class Linear(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        print(input.shape)
+        print(self.in_features)
 
+        input_reshaped = input.reshape(-1, self.in_features)  # 调整输入矩阵的形状
+        print(input_reshaped.shape)
+        print(self.params['W'].shape)
+        output = np.matmul(input_reshaped, self.params['W'].T)
+        print("here")
+        if self.params['b'] is not None:
+            output += self.params['b']
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return output
 
     def backward(self, output_grad):
-        """
-        Input:
-            - output_grad：(*, H_{out})
-            partial (loss function) / partial (output of this module)
-
-        Return：
-            - input_grad：(*, H_{in})
-            partial (loss function) / partial (input of this module)
-        """
         ###########################################################################
         # TODO:                                                                   #
         # Calculate and store the grads of self.params['W'] and self.params['b']  #
@@ -85,6 +61,9 @@ class Linear(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        self.grads['W'] = np.matmul(output_grad.T, self.input).T
+        self.grads['b'] = np.sum(output_grad, axis=0)
+        input_grad = np.matmul(output_grad, self.params['W'])
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         assert self.grads['W'].shape == self.params['W'].shape

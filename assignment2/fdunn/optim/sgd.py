@@ -8,7 +8,7 @@ import sys
 sys.path.append(os.getcwd())
 
 import numpy as np
-from base import Optimizer
+from .base import Optimizer
 
 class SGD(Optimizer):
     def __init__(self, model, lr=0.0):

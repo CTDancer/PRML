@@ -8,7 +8,7 @@ import sys
 sys.path.append(os.getcwd())
 
 import numpy as np
-from base import Module
+from .base import Module
 
 class MaxPool2d(Module):
     """Applies a 2D max pooling over an input signal composed of several input
@@ -59,7 +59,25 @@ class MaxPool2d(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        output = None
+        batch_size, channels, input_height, input_width = input.shape
+
+        # Compute output dimensions
+        output_height = (input_height - self.kernel_size) // self.stride + 1
+        output_width = (input_width - self.kernel_size) // self.stride + 1
+
+        # Initialize output tensor
+        output = np.zeros((batch_size, channels, output_height, output_width))
+
+        # Perform max pooling
+        for b in range(batch_size):
+            for c in range(channels):
+                for i in range(output_height):
+                    for j in range(output_width):
+                        # Extract the current pooling window
+                        window = input[b, c, i*self.stride:i*self.stride+self.kernel_size,
+                                       j*self.stride:j*self.stride+self.kernel_size]
+                        # Take the maximum value from the window and store it in the output
+                        output[b, c, i, j] = np.max(window)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return output
@@ -71,7 +89,20 @@ class MaxPool2d(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        input_grad = None
+        batch_size, channels, output_height, output_width = output_grad.shape
+        input_grad = np.zeros_like(self.input)
+
+        for b in range(batch_size):
+            for c in range(channels):
+                for i in range(output_height):
+                    for j in range(output_width):
+                        # Find the indices of the maximum value in the corresponding input window
+                        window = self.input[b, c, i*self.stride:i*self.stride+self.kernel_size,
+                                            j*self.stride:j*self.stride+self.kernel_size]
+                        max_indices = np.unravel_index(np.argmax(window), window.shape)
+
+                        # Set the gradient of the maximum value to be the gradient of the output
+                        input_grad[b, c, i*self.stride+max_indices[0], j*self.stride+max_indices[1]] = output_grad[b, c, i, j]
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return input_grad

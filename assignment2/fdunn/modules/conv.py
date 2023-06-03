@@ -8,7 +8,7 @@ import sys
 sys.path.append(os.getcwd())
 
 import numpy as np
-from base import Module
+from .base import Module
 
 class Conv2d(Module):
     """Applies a 2D convolution over an input signal composed of several input
@@ -79,10 +79,13 @@ class Conv2d(Module):
         # Implement the params init.                                              #
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        self.params['W'] = None
-        self.params['b'] = None
+
+        self.params['W'] = np.random.randn(out_channels, in_channels, kernel_size, kernel_size)
         if bias:
-            pass
+            self.params['b'] = np.random.randn(out_channels)
+        else:
+            self.params['b'] = None
+
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # grads of params
@@ -96,7 +99,28 @@ class Conv2d(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        output = None
+        batch_size, in_channels, height, width = input.shape
+        out_channels, _, kernel_size, _ = self.params['W'].shape
+
+        # Calculate output dimensions
+        output_height = (height + 2 * self.padding - kernel_size) // self.stride + 1
+        output_width = (width + 2 * self.padding - kernel_size) // self.stride + 1
+
+        # Create output tensor
+        output = np.zeros((batch_size, out_channels, output_height, output_width))
+
+        # Apply convolution
+        padded_input = np.pad(input, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)), mode='constant')
+        for b in range(batch_size):
+            for c_out in range(out_channels):
+                for c_in in range(in_channels):
+                    for i in range(output_height):
+                        for j in range(output_width):
+                            output[b, c_out, i, j] += np.sum(padded_input[b, c_in, i*self.stride:i*self.stride+kernel_size, j*self.stride:j*self.stride+kernel_size] * self.params['W'][c_out, c_in])
+
+        # Add bias if enabled
+        if self.params['b'] is not None:
+            output += self.params['b'].reshape((1, out_channels, 1, 1))
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return output
@@ -108,7 +132,32 @@ class Conv2d(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        input_grad = None
+        batch_size, out_channels, output_height, output_width = output_grad.shape
+        _, in_channels, kernel_size, _ = self.params['W'].shape
+
+        # Initialize gradients
+        input_grad = np.zeros_like(self.input)
+        self.grads['W'] = np.zeros_like(self.params['W'])
+        if self.params['b'] is not None:
+            self.grads['b'] = np.zeros_like(self.params['b'])
+
+        # Calculate gradients
+        padded_input = np.pad(self.input, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)), mode='constant')
+        padded_input_grad = np.pad(input_grad, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)), mode='constant')
+        for b in range(batch_size):
+            for c_out in range(out_channels):
+                for c_in in range(in_channels):
+                    for i in range(output_height):
+                        for j in range(output_width):
+                            input_grad[b, c_in, i*self.stride:i*self.stride+kernel_size, j*self.stride:j*self.stride+kernel_size] += output_grad[b, c_out, i, j] * self.params['W'][c_out, c_in]
+                            self.grads['W'][c_out, c_in] += output_grad[b, c_out, i, j] * padded_input[b, c_in, i*self.stride:i*self.stride+kernel_size, j*self.stride:j*self.stride+kernel_size]
+
+        # Compute bias gradients if enabled
+        if self.params['b'] is not None:
+            self.grads['b'] = np.sum(output_grad, axis=(0, 2, 3))
+
+        # Remove padding from input gradients
+        input_grad = input_grad[:, :, self.padding:-self.padding, self.padding:-self.padding]
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return input_grad
