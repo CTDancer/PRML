@@ -51,6 +51,10 @@ class MaxPool2d(Module):
         self.kernel_size = kernel_size
         self.stride = stride
 
+        self.output_height = None
+        self.output_width = None
+        self.channels = None
+
     def forward(self, input):
         self.input = input
         ###########################################################################
@@ -59,11 +63,17 @@ class MaxPool2d(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        # print("pooling forward")
+
         batch_size, channels, input_height, input_width = input.shape
 
         # Compute output dimensions
         output_height = (input_height - self.kernel_size) // self.stride + 1
         output_width = (input_width - self.kernel_size) // self.stride + 1
+
+        self.output_height = output_height
+        self.output_width = output_width
+        self.channels = channels
 
         # Initialize output tensor
         output = np.zeros((batch_size, channels, output_height, output_width))
@@ -89,7 +99,16 @@ class MaxPool2d(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        batch_size, channels, output_height, output_width = output_grad.shape
+        # print("pooling backward")
+
+        # print('output_grad.shape: ', output_grad.shape)
+        batch_size = output_grad.shape[0]
+        channels = self.channels
+        output_height = self.output_height
+        output_width = self.output_width
+
+        output_grad = output_grad.reshape((batch_size, channels, output_height, output_width))
+
         input_grad = np.zeros_like(self.input)
 
         for b in range(batch_size):
