@@ -99,6 +99,8 @@ class Conv2d(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        # print("conv forward")
+
         batch_size, in_channels, height, width = input.shape
         out_channels, _, kernel_size, _ = self.params['W'].shape
 
@@ -131,6 +133,8 @@ class Conv2d(Module):
         # Implement the backward method.                                          #
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
+        # print("conv backward")
 
         batch_size, out_channels, output_height, output_width = output_grad.shape
         _, in_channels, kernel_size, _ = self.params['W'].shape
