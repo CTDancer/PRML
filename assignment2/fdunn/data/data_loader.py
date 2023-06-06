@@ -39,8 +39,8 @@ def get_dataset(dataset):
         dst_train = datasets.MNIST(data_folder, train=True, download=True, transform=transform)
         dst_test = datasets.MNIST(data_folder, train=False, download=True, transform=transform)
 
-        trainloader = torch.utils.data.DataLoader(dst_train, batch_size=8, shuffle=True, num_workers=0)
-        testloader = torch.utils.data.DataLoader(dst_test, batch_size=8, shuffle=False, num_workers=2)
+        trainloader = torch.utils.data.DataLoader(dst_train, batch_size=128, shuffle=True, num_workers=0)
+        testloader = torch.utils.data.DataLoader(dst_test, batch_size=128, shuffle=False, num_workers=2)
 
     else:
         exit('unknown dataset: %s' % dataset)
