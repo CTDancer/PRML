@@ -8,6 +8,7 @@ import sys
 sys.path.append(os.getcwd())
 
 import numpy as np
+import torch
 from .base import Module
 
 class Linear(Module):
@@ -26,6 +27,8 @@ class Linear(Module):
         if bias:
             self.params['b'] = np.random.uniform(low=-np.sqrt(k), high=np.sqrt(k), size=(out_features))
 
+        print('init: W.shape={}, b.shape={}'.format(self.params['W'].shape, self.params['b'].shape if self.params['b'] is not None else None))
+
         # grads of params
         self.grads = {}
 
@@ -37,14 +40,10 @@ class Linear(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        print(input.shape)
-        print(self.in_features)
+        input = input.reshape(input.shape[0], -1)
+        self.input = input
+        output = np.dot(input, self.params['W'].T)
 
-        input_reshaped = input.reshape(-1, self.in_features)  # 调整输入矩阵的形状
-        print(input_reshaped.shape)
-        print(self.params['W'].shape)
-        output = np.matmul(input_reshaped, self.params['W'].T)
-        print("here")
         if self.params['b'] is not None:
             output += self.params['b']
 
@@ -61,9 +60,17 @@ class Linear(Module):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        self.grads['W'] = np.matmul(output_grad.T, self.input).T
-        self.grads['b'] = np.sum(output_grad, axis=0)
-        input_grad = np.matmul(output_grad, self.params['W'])
+        # print('backward: output_grad.shape={}'.format(output_grad.shape))
+        # print('backward: input.shape={}'.format(self.input.shape))
+        # print('backward: W.shape={}'.format(self.params['W'].shape))
+        # print('backward: b.shape={}'.format(self.params['b'].shape if self.params['b'] is not None else None))
+
+        input_grad = np.dot(output_grad, self.params['W'])
+
+        self.grads['W'] = np.dot(output_grad.T, self.input)
+
+        if self.params['b'] is not None:
+            self.grads['b'] = np.sum(output_grad, axis=0)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         assert self.grads['W'].shape == self.params['W'].shape
@@ -78,7 +85,7 @@ def unit_test():
     model = Linear(20,30)
     input = np.random.randn(4, 2, 8, 20)
     output = model(input)
-    print (output.shape)
+    # print (output.shape)
 
     output_grad = output
     input_grad = model.backward(output_grad)
